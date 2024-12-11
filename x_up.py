@@ -59,7 +59,7 @@ def monitor_log_file(log_file, character_name, count_var):
     """Monitor the log file for updates."""
     print(f"Monitoring log file: {log_file}")
     dash_pattern = re.compile(rf"\] {character_name} > -{{3,}}")
-    x_pattern = re.compile(r"(^x\s| x\s| x$)", re.IGNORECASE)
+    x_pattern = re.compile(r" ] [\d\wa-zA-Z\'\-\_ ]+ > +(x| x)", re.IGNORECASE)
     
     try:
         with open(log_file, 'r', encoding='utf-16', errors='ignore') as f:
