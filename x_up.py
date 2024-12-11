@@ -3,7 +3,7 @@ import re
 import time
 import win32gui
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from threading import Thread, Event
 
 monitor_thread = None
@@ -27,18 +27,29 @@ def find_latest_log(character_name):
     log_dir = os.path.expanduser(r"~\Documents\EVE\logs\Chatlogs")
     print(f"Looking for logs in directory: {log_dir}")
     
-    fleet_logs = [os.path.join(log_dir, file) for file in os.listdir(log_dir) if file.startswith("Fleet_")]
+    try:
+        fleet_logs = [os.path.join(log_dir, file) for file in os.listdir(log_dir) if file.startswith("Fleet_")]
+    except FileNotFoundError:
+        print(f"Log directory not found: {log_dir}")
+        return None
+    except Exception as e:
+        print(f"Error accessing log directory: {e}")
+        return None
     
     fleet_logs.sort(key=os.path.getmtime, reverse=True)  # Sort by modification time
     
     character_pattern = re.compile(rf"Listener:\s+{character_name.strip()}")
     
     for log_file in fleet_logs:
-        with open(log_file, 'r', encoding='utf-16', errors='ignore') as f:
-            content = f.read()
-            if character_pattern.search(content):
-                print(f"Character '{character_name}' found in log file: {log_file}")
-                return log_file
+        try:
+            with open(log_file, 'r', encoding='utf-16', errors='ignore') as f:
+                content = f.read()
+                if character_pattern.search(content):
+                    print(f"Character '{character_name}' found in log file: {log_file}")
+                    return log_file
+        except Exception as e:
+            print(f"Error reading log file {log_file}: {e}")
+    
     print(f"Character '{character_name}' not found in any log file.")
     return None
 
@@ -96,12 +107,7 @@ def start_monitoring(character_name, count_var, log_file_var):
     monitor_thread.daemon = True
     monitor_thread.start()
 
-def on_load_button_click(character_var, count_var, log_file_var):
-    character_name = character_var.get().replace("EVE - ", "").strip()
-    count_var.set(0)
-    start_monitoring(character_name, count_var, log_file_var)
-
-def on_reset_button_click(character_var, count_var, log_file_var):
+def on_load_reset_button_click(character_var, count_var, log_file_var):
     character_name = character_var.get().replace("EVE - ", "").strip()
     count_var.set(0)
     start_monitoring(character_name, count_var, log_file_var)
@@ -126,12 +132,9 @@ def create_gui():
     root.geometry("300x300")  # Set the initial size to be square
     root.resizable(False, False)  # Make the window non-resizable
 
-    # Set the icon for the window
-    root.iconbitmap('icon.ico')  # Ensure the path to icon.ico is correct
-
     eve_windows = list_eve_windows()
     if not eve_windows:
-        tk.messagebox.showerror("Error", "No EVE clients detected.")
+        messagebox.showerror("Error", "No EVE clients detected.")
         root.destroy()
         return
 
@@ -151,8 +154,7 @@ def create_gui():
 
     button_frame = ttk.Frame(root)
     button_frame.pack(pady=5)
-    ttk.Button(button_frame, text="Load", command=lambda: on_load_button_click(character_var, count_var, log_file_var)).pack(side=tk.LEFT, padx=5)
-    ttk.Button(button_frame, text="Reset", command=lambda: on_reset_button_click(character_var, count_var, log_file_var)).pack(side=tk.LEFT, padx=5)
+    ttk.Button(button_frame, text="Load / Reset", command=lambda: on_load_reset_button_click(character_var, count_var, log_file_var)).pack(side=tk.LEFT, padx=5)
 
     ttk.Label(root, text="Log File Loaded:").pack()
     ttk.Label(root, textvariable=log_file_var).pack()
@@ -162,6 +164,13 @@ def create_gui():
 
     combobox.after(5000, update_eve_clients, character_var, combobox)  # Start periodic check
 
+    def on_closing():
+        stop_event.set()
+        if monitor_thread and monitor_thread.is_alive():
+            monitor_thread.join()
+        root.destroy()
+
+    root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
 
 if __name__ == "__main__":
