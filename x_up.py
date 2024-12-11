@@ -9,6 +9,8 @@ from threading import Thread, Event
 monitor_thread = None
 stop_event = Event()
 
+version_number = "0.0.1"
+
 def list_eve_windows():
     """List EVE windows to determine characters."""
     def enum_windows_callback(hwnd, window_names):
@@ -100,7 +102,7 @@ def start_monitoring(character_name, count_var, log_file_var):
     stop_event.clear()
     log_file = find_latest_log(character_name)
     if not log_file:
-        print(f"No log file found for character: {character_name}")
+        messagebox.showerror("Error", f"No log file found for character: {character_name}")
         return
     log_file_var.set(os.path.basename(log_file))
     monitor_thread = Thread(target=monitor_log_file, args=(log_file, character_name, count_var))
@@ -126,11 +128,41 @@ def update_eve_clients(character_var, combobox):
     
     combobox.after(5000, update_eve_clients, character_var, combobox)  # Check every 5 seconds
 
+def toggle_always_on_top():
+    if always_on_top_var.get():
+        root.attributes('-topmost', True)
+    else:
+        root.attributes('-topmost', False)
+
+def show_about():
+    about_text = (
+        "X-UP is a tool for EVE Online that helps people count. Because counting is hard.\n\n"
+        f"Version: {version_number}\n\n"
+        "Made by h0ly lag"
+    )
+    messagebox.showinfo("About X-UP", about_text)
+
 def create_gui():
+    global root, always_on_top_var
     root = tk.Tk()
     root.title("EVE X-UP")
     root.geometry("300x300")  # Set the initial size to be square
     root.resizable(False, False)  # Make the window non-resizable
+
+    # Create a menu bar
+    menu_bar = tk.Menu(root)
+    root.config(menu=menu_bar)
+
+    # Create a "Settings" menu
+    settings_menu = tk.Menu(menu_bar, tearoff=0)
+    menu_bar.add_cascade(label="Settings", menu=settings_menu)
+
+    # Add the "Always on Top" checkbox to the "Settings" menu
+    always_on_top_var = tk.BooleanVar()
+    settings_menu.add_checkbutton(label="Always on Top", variable=always_on_top_var, command=toggle_always_on_top)
+
+    # Add the "About" button as a root-level menu item
+    menu_bar.add_command(label="About", command=show_about)
 
     eve_windows = list_eve_windows()
     if not eve_windows:
@@ -160,7 +192,7 @@ def create_gui():
     ttk.Label(root, textvariable=log_file_var).pack()
 
     ttk.Label(root, text="X Count:", font=("Helvetica", 16)).pack(pady=(20, 0))
-    ttk.Label(root, textvariable=count_var, font=("Helvetica", 48)).pack(pady=(0, 20))
+    ttk.Label(root, textvariable=count_var, font=("Helvetica", 48)).pack(pady=(0, 30))  # Add more padding to the bottom
 
     combobox.after(5000, update_eve_clients, character_var, combobox)  # Start periodic check
 
