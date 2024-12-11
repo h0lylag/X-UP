@@ -58,7 +58,7 @@ def find_latest_log(character_name):
 def monitor_log_file(log_file, character_name, count_var):
     """Monitor the log file for updates."""
     print(f"Monitoring log file: {log_file}")
-    dash_pattern = re.compile(rf"\] {character_name} > -{{3,}}")
+    dash_pattern = re.compile(rf" ] {character_name} > -{{3,}}")
     x_pattern = re.compile(r" ] [\d\wa-zA-Z\'\-\_ ]+ > +(x| x)", re.IGNORECASE)
     
     try:
@@ -145,8 +145,8 @@ def show_about():
 def create_gui():
     global root, always_on_top_var
     root = tk.Tk()
-    root.title("EVE X-UP")
-    root.geometry("300x300")  # Set the initial size to be square
+    root.title("X-UP")
+    root.geometry("285x285")  # Set the initial size to be square
     root.resizable(False, False)  # Make the window non-resizable
 
     # Create a menu bar
@@ -180,12 +180,12 @@ def create_gui():
     log_file_var = tk.StringVar()
     log_file_var.set("None")
 
-    ttk.Label(root, text="Select EVE Client:").pack(pady=5)
+    ttk.Label(root, text="EVE Client:").pack(pady=5)
     combobox = ttk.Combobox(root, textvariable=character_var, values=eve_windows, state='readonly')
     combobox.pack(pady=5)
 
     button_frame = ttk.Frame(root)
-    button_frame.pack(pady=5)
+    button_frame.pack(pady=(20, 0))
     ttk.Button(button_frame, text="Load / Reset", command=lambda: on_load_reset_button_click(character_var, count_var, log_file_var)).pack(side=tk.LEFT, padx=5)
 
     ttk.Label(root, text="Log File Loaded:").pack()
