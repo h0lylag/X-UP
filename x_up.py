@@ -60,6 +60,7 @@ def monitor_log_file(log_file, character_name, count_var):
     print(f"Monitoring log file: {log_file}")
     dash_pattern = re.compile(rf" ] {character_name} > -{{3,}}")
     x_pattern = re.compile(r" ] [\d\wa-zA-Z\'\-\_ ]+ > +(x| x)", re.IGNORECASE)
+    #x_pattern = re.compile(r" > +(x|x\d *x|x *\d) *", re.IGNORECASE)
     
     try:
         with open(log_file, 'r', encoding='utf-16', errors='ignore') as f:
@@ -84,10 +85,14 @@ def monitor_log_file(log_file, character_name, count_var):
                     continue
                 
                 # Check if the line matches the x pattern
+                ### 
+                ### This area is where we need to detect if users are X-ing up with multiple X's
+                ###
                 if x_pattern.search(line):
                     count += 1
                     count_var.set(count)
                     print(f"Updated count: {count} - Line: {line.strip()}")
+
     except Exception as e:
         print(f"Error while monitoring log file: {e}")
 
