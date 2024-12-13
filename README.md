@@ -1,0 +1,1 @@
+Tool for EVE Online that helps count people X-ing up in fleet chat.

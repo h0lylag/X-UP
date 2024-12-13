@@ -70,7 +70,7 @@ def monitor_log_file(log_file, character_name, count_var):
             while not stop_event.is_set():
                 line = f.readline()
                 if not line:
-                    time.sleep(0.1)  # Avoid busy waiting
+                    time.sleep(0.1)
                     continue
 
                 # Print the line being read for debugging
