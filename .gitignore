@@ -7,4 +7,4 @@ x_up_test*
 *.spec
 build*
 dist*
-
+x-up.exe
