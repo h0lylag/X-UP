@@ -1,5 +1,5 @@
 # xup/main.py
-from gui import create_gui
+from gui import build_gui
 
 if __name__ == "__main__":
-    create_gui()
+    build_gui()

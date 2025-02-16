@@ -1,33 +1,38 @@
 # xup/eve.py
 import win32gui
 
-def list_eve_windows():
-    """List EVE windows to determine characters."""
-    def enum_windows_callback(hwnd, window_names):
+def get_eve_windows():
+    """
+    Retrieve a list of EVE client names from visible windows,
+    with the "EVE - " prefix removed.
+    """
+    clients = []
+    def enum_callback(hwnd, _):
         if win32gui.IsWindowVisible(hwnd):
             title = win32gui.GetWindowText(hwnd)
             if title.startswith("EVE - "):
-                window_names.append(title)
-        return True
+                clients.append(title.replace("EVE - ", ""))
+    win32gui.EnumWindows(enum_callback, None)
+    return clients
 
-    eve_windows = []
-    win32gui.EnumWindows(enum_windows_callback, eve_windows)
-    return eve_windows
-
-def update_eve_clients(character_var, combobox):
+def refresh_eve_clients(character_var, combobox):
     """
-    Periodically update the list of EVE clients in the given combobox.
+    Update the combobox with the current list of EVE clients.
+    If clients are available, the dropdown is enabled; otherwise, it's disabled.
+    This function reschedules itself every 5 seconds.
     """
-    eve_windows = list_eve_windows()
-    eve_windows = [window.replace("EVE - ", "") for window in eve_windows]
-    current_value = character_var.get()
-
-    if current_value not in eve_windows and eve_windows:
-        character_var.set(eve_windows[0])
-    
-    combobox['values'] = eve_windows
-    if current_value not in eve_windows and eve_windows:
-        combobox.set(eve_windows[0])
-    
-    # Schedule the next update in 5 seconds
-    combobox.after(5000, update_eve_clients, character_var, combobox)
+    clients = get_eve_windows()  # Returns client names without the "EVE - " prefix
+    if clients:
+        combobox.config(state="readonly")
+        combobox['values'] = clients
+        # If the current selection is not in the new list, update it
+        if character_var.get() not in clients:
+            character_var.set(clients[0])
+            combobox.set(clients[0])
+    else:
+        combobox.config(state="disabled")
+        combobox['values'] = ["No EVE clients found"]
+        character_var.set("No EVE clients found")
+        combobox.set("No EVE clients found")
+        
+    combobox.after(5000, refresh_eve_clients, character_var, combobox)
