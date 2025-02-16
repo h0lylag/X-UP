@@ -1,3 +1,5 @@
+.venv/
+__pycache__/
 build/
 dist/
 icon.ico
@@ -5,5 +7,4 @@ x_up_test*
 *.spec
 build*
 dist*
-__pycache__/
-.venv/
+
