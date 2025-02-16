@@ -1,7 +1,7 @@
 .venv/
 __pycache__/
-build/
-dist/
+*build/
+*dist/
 icon.ico
 x_up_test*
 *.spec

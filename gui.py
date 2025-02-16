@@ -1,4 +1,6 @@
 # xup/gui.py
+import os
+import sys
 import tkinter as tk
 from tkinter import ttk, messagebox
 from monitor import load_character_monitor, stop_event, monitor_thread
@@ -6,6 +8,18 @@ from eve import get_eve_windows, refresh_eve_clients  # Assumes these functions 
 
 VERSION = "v0.0.2"
 
+def set_window_icon(root):
+    """Set the window icon from the static folder."""
+    try:
+        # When compiled with Nuitka, sys.frozen is True and data files are in sys._MEIPASS
+        if getattr(sys, "frozen", False):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.abspath(".")
+        icon_path = os.path.join(base_path, "static", "icon.ico")
+        root.iconbitmap(icon_path)
+    except Exception as e:
+        print("Error setting window icon:", e)
 
 def toggle_always_on_top(root, top_var):
     """Toggle the 'always on top' state for the main window."""
@@ -26,9 +40,9 @@ def reset_count(count_holder, count_var):
 
 def build_gui():
     root = tk.Tk()
+    set_window_icon(root)
     root.title(f"X-UP - {VERSION}")
-    root.iconbitmap("static/icon.ico")
-    root.geometry("285x270")
+    root.geometry("285x275")
     root.resizable(False, False)
     
     # Always on top toggle variable
@@ -72,12 +86,14 @@ def build_gui():
         state=combobox_state
     )
     combobox.pack(side=tk.LEFT, padx=5)
-    # Refresh client list every 5 seconds; refresh_eve_clients should enable the dropdown if a client appears.
+    # Refresh client list every 5 seconds; refresh_eve_clients enables/disables the dropdown as needed.
     combobox.after(5000, refresh_eve_clients, character_var, combobox)
     
-    ttk.Button(client_frame, text="Load Character",
-           command=lambda: load_character_monitor(character_var, count_var, log_file_var, count_holder)
-          ).pack(side=tk.LEFT, padx=5)
+    ttk.Button(
+        client_frame, 
+        text="Load Character",
+        command=lambda: load_character_monitor(character_var, count_var, log_file_var, count_holder)
+    ).pack(side=tk.LEFT, padx=5)
     
     # Log file display
     log_frame = ttk.Frame(root)
@@ -87,7 +103,7 @@ def build_gui():
     
     # X Count display
     ttk.Label(root, text="X Count:", font=("Helvetica", 16)).pack(pady=(10, 0))
-    ttk.Label(root, textvariable=count_var, font=("Helvetica", 48)).pack(pady=(0, 10))
+    ttk.Label(root, textvariable=count_var, font=("Helvetica", 56)).pack(pady=(0, 10))
     
     # Reset button with larger text
     style = ttk.Style()
