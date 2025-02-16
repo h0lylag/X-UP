@@ -9,7 +9,7 @@ from threading import Thread, Event
 monitor_thread = None
 stop_event = Event()
 
-version_number = "0.0.1"
+version_number = "v0.0.2"
 
 def list_eve_windows():
     """List EVE windows to determine characters."""
@@ -55,7 +55,7 @@ def find_latest_log(character_name):
     print(f"Character '{character_name}' not found in any log file.")
     return None
 
-def monitor_log_file(log_file, character_name, count_var):
+def monitor_log_file(log_file, character_name, count_var, count_holder):
     """Monitor the log file for updates."""
     print(f"Monitoring log file: {log_file}")
     dash_pattern = re.compile(rf" ] {character_name} > -{{3,}}")
@@ -66,42 +66,41 @@ def monitor_log_file(log_file, character_name, count_var):
             # Move to the end of the file
             f.seek(0, os.SEEK_END)
             
-            count = 0
             while not stop_event.is_set():
                 line = f.readline()
                 if not line:
                     time.sleep(0.1)
                     continue
 
-                # Print the line being read for debugging
+                # Debug print
                 print(f"Read line: {line.strip()}")
 
-                # Check if the line matches the dash pattern
+                # If line matches the dash pattern, reset count
                 if dash_pattern.search(line):
-                    count = 0
-                    count_var.set(count)
+                    count_holder[0] = 0
+                    count_var.set(0)
                     print(f"Count reset by dashes from {character_name}. Line: {line.strip()}")
                     continue
                 
-                # Check if the line matches the x pattern
+                # Check for an x pattern
                 if x_pattern.search(line):
                     multi_x_pattern = re.compile(r" > *(?:x+\s?(\d+)|(\d+)\s?x)\b", re.IGNORECASE)
                     match = multi_x_pattern.search(line)
                     if match:
-                        # Extract the number from the string (either x# or #x)
+                        # Extract number from x# or #x
                         x_count = int(match.group(1) or match.group(2))
-                        count += x_count
-                        count_var.set(count)
-                        print(f"Updated count by {x_count}: {count} - Line: {line.strip()}")
+                        count_holder[0] += x_count
+                        count_var.set(count_holder[0])
+                        print(f"Updated count by {x_count}: {count_holder[0]} - Line: {line.strip()}")
                     else:
-                        count += 1
-                        count_var.set(count)
-                        print(f"Updated count: {count} - Line: {line.strip()}")
+                        count_holder[0] += 1
+                        count_var.set(count_holder[0])
+                        print(f"Updated count: {count_holder[0]} - Line: {line.strip()}")
 
     except Exception as e:
         print(f"Error while monitoring log file: {e}")
 
-def start_monitoring(character_name, count_var, log_file_var):
+def start_monitoring(character_name, count_var, log_file_var, count_holder):
     global monitor_thread, stop_event
 
     # Stop the previous monitoring thread if it exists
@@ -115,14 +114,16 @@ def start_monitoring(character_name, count_var, log_file_var):
         messagebox.showerror("Error", f"No log file found for character: {character_name}")
         return
     log_file_var.set(os.path.basename(log_file))
-    monitor_thread = Thread(target=monitor_log_file, args=(log_file, character_name, count_var))
+    monitor_thread = Thread(target=monitor_log_file, args=(log_file, character_name, count_var, count_holder))
     monitor_thread.daemon = True
     monitor_thread.start()
 
-def on_load_reset_button_click(character_var, count_var, log_file_var):
+def on_load_reset_button_click(character_var, count_var, log_file_var, count_holder):
     character_name = character_var.get().replace("EVE - ", "").strip()
+    # Reset both the displayed value and the shared count
+    count_holder[0] = 0
     count_var.set(0)
-    start_monitoring(character_name, count_var, log_file_var)
+    start_monitoring(character_name, count_var, log_file_var, count_holder)
 
 def update_eve_clients(character_var, combobox):
     eve_windows = list_eve_windows()
@@ -147,7 +148,6 @@ def toggle_always_on_top():
 def show_about():
     about_text = (
         "X-UP is a tool for EVE Online that helps people count. Because counting is hard.\n\n"
-        f"Version: {version_number}\n\n"
         "Made by h0ly lag"
     )
     messagebox.showinfo("About X-UP", about_text)
@@ -155,23 +155,17 @@ def show_about():
 def create_gui():
     global root, always_on_top_var
     root = tk.Tk()
-    root.title("X-UP")
-    root.geometry("285x285")  # Set the initial size to be square
-    root.resizable(False, False)  # Make the window non-resizable
+    root.title(f'X-UP - {version_number}')
+    root.geometry("285x250")
+    root.resizable(False, False)
 
-    # Create a menu bar
+    # Create menu bar and settings
     menu_bar = tk.Menu(root)
     root.config(menu=menu_bar)
-
-    # Create a "Settings" menu
     settings_menu = tk.Menu(menu_bar, tearoff=0)
     menu_bar.add_cascade(label="Settings", menu=settings_menu)
-
-    # Add the "Always on Top" checkbox to the "Settings" menu
     always_on_top_var = tk.BooleanVar()
     settings_menu.add_checkbutton(label="Always on Top", variable=always_on_top_var, command=toggle_always_on_top)
-
-    # Add the "About" button as a root-level menu item
     menu_bar.add_command(label="About", command=show_about)
 
     eve_windows = list_eve_windows()
@@ -186,25 +180,44 @@ def create_gui():
 
     count_var = tk.IntVar()
     count_var.set(0)
+    # Use a mutable container to hold the actual count value
+    count_holder = [0]
 
     log_file_var = tk.StringVar()
     log_file_var.set("None")
 
-    ttk.Label(root, text="EVE Client:").pack(pady=5)
-    combobox = ttk.Combobox(root, textvariable=character_var, values=eve_windows, state='readonly')
-    combobox.pack(pady=5)
+    # Create a frame for the client dropdown and Load Character button
+    client_frame = ttk.Frame(root)
+    client_frame.pack(pady=5)
+    
+    combobox = ttk.Combobox(client_frame, textvariable=character_var, values=eve_windows, state='readonly')
+    combobox.pack(side=tk.LEFT, padx=5)
+    combobox.after(5000, update_eve_clients, character_var, combobox)
+    
+    ttk.Button(client_frame, text="Load Character",
+               command=lambda: on_load_reset_button_click(character_var, count_var, log_file_var, count_holder)).pack(side=tk.LEFT, padx=5)
 
-    button_frame = ttk.Frame(root)
-    button_frame.pack(pady=(20, 0))
-    ttk.Button(button_frame, text="Load / Reset", command=lambda: on_load_reset_button_click(character_var, count_var, log_file_var)).pack(side=tk.LEFT, padx=5)
+    log_frame = ttk.Frame(root)
+    log_frame.pack(pady=5)
 
-    ttk.Label(root, text="Log File Loaded:").pack()
-    ttk.Label(root, textvariable=log_file_var).pack()
+    ttk.Label(log_frame, text="Log:").grid(row=0, column=0, padx=0)
+    ttk.Label(log_frame, textvariable=log_file_var).grid(row=0, column=1, padx=0)
 
-    ttk.Label(root, text="X Count:", font=("Helvetica", 16)).pack(pady=(20, 0))
-    ttk.Label(root, textvariable=count_var, font=("Helvetica", 48)).pack(pady=(0, 30))  # Add more padding to the bottom
+    ttk.Label(root, text="X Count:", font=("Helvetica", 16)).pack(pady=(10, 0))
+    ttk.Label(root, textvariable=count_var, font=("Helvetica", 56)).pack(pady=(0, 10))
 
-    combobox.after(5000, update_eve_clients, character_var, combobox)  # Start periodic check
+    # Create a style for a larger reset button text
+    style = ttk.Style()
+    style.configure("Large.TButton", font=("Helvetica", 16, "bold"))
+
+    # Reset button: resets both the shared count and the display
+    reset_count_button = ttk.Button(
+        root,
+        text="RESET",
+        style="Large.TButton",
+        command=lambda: (count_holder.__setitem__(0, 0), count_var.set(0))
+    )
+    reset_count_button.pack(pady=(0, 0))
 
     def on_closing():
         stop_event.set()

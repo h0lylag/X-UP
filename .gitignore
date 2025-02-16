@@ -3,3 +3,5 @@ dist/
 icon.ico
 x_up_test*
 *.spec
+build*
+dist*
