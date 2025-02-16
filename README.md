@@ -1,8 +1,8 @@
 # X-UP
 
-![X-UP Logo](static/icon.ico)
-
 X-UP is a lightweight tool for [EVE Online](https://www.eveonline.com/) that helps players keep track of counts easily. It monitors log files in real time and updates a counter based on in-game events. The project is written in Python and compiled to a single executable using [Nuitka](https://nuitka.net/).
+
+![X-UP Screenshot](https://i.imgur.com/1OHUkjW.png)
 
 ## Features
 
