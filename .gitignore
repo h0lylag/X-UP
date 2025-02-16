@@ -5,3 +5,5 @@ x_up_test*
 *.spec
 build*
 dist*
+__pycache__/
+.venv/
