@@ -6,6 +6,7 @@ from eve import get_eve_windows, refresh_eve_clients  # Assumes these functions 
 
 VERSION = "v0.0.2"
 
+
 def toggle_always_on_top(root, top_var):
     """Toggle the 'always on top' state for the main window."""
     root.attributes('-topmost', top_var.get())
@@ -26,7 +27,8 @@ def reset_count(count_holder, count_var):
 def build_gui():
     root = tk.Tk()
     root.title(f"X-UP - {VERSION}")
-    root.geometry("285x250")
+    root.iconbitmap("static/icon.ico")
+    root.geometry("285x270")
     root.resizable(False, False)
     
     # Always on top toggle variable
@@ -85,7 +87,7 @@ def build_gui():
     
     # X Count display
     ttk.Label(root, text="X Count:", font=("Helvetica", 16)).pack(pady=(10, 0))
-    ttk.Label(root, textvariable=count_var, font=("Helvetica", 56)).pack(pady=(0, 10))
+    ttk.Label(root, textvariable=count_var, font=("Helvetica", 48)).pack(pady=(0, 10))
     
     # Reset button with larger text
     style = ttk.Style()
