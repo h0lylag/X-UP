@@ -2,7 +2,6 @@
 __pycache__/
 *build/
 *dist/
-icon.ico
 x_up_test*
 *.spec
 build*
