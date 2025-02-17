@@ -4,7 +4,7 @@ $ENTRY_POINT = "main.py"                          # Main entry script for the ap
 $ICON_PATH   = "./static/icon.ico"                # Path to the icon file
 $DATA_DIR    = "./static"                         # Directory to include as data
 $DATA_DEST   = "static"                           # Destination folder name inside the executable
-$OUTPUT_NAME = "x-up.exe"                          # Desired output executable name
+$OUTPUT_NAME = "x-up.exe"                         # Desired output executable name
 $NUITKA_FLAGS = "--standalone --onefile --windows-console-mode=disable --enable-plugin=tk-inter"
 
 # Display configuration
