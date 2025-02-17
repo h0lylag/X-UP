@@ -80,7 +80,6 @@ def monitor_log_updates(log_file, character_name, count_var, count_holder):
                             x_count = int(match.group(1) or match.group(2))
                         except (ValueError, TypeError):
                             x_count = 1
-                        x_count = min(x_count, 25)  # Cap the increment
                     else:
                         x_count = 1
                     count_holder[0] += x_count
