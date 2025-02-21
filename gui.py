@@ -6,7 +6,7 @@ from tkinter import ttk, messagebox
 from monitor import load_character_monitor, stop_event, monitor_thread
 from eve import get_eve_windows, refresh_eve_clients  # Assumes these functions have been optimized
 
-VERSION = "v0.0.2"
+VERSION = "v0.0.3"
 
 def set_window_icon(root):
     """Set the window icon from the static folder."""
