@@ -1,7 +1,7 @@
 # compile.ps1
 # Configuration Variables
-$ENTRY_POINT = "main.py"                          # Main entry script for the application
-$ICON_PATH   = "./static/icon.ico"                # Path to the icon file
+$ENTRY_POINT = "x-up.py"                          # Main entry script for the application
+$ICON_PATH   = "static/icon.ico"                # Path to the icon file
 $DATA_DIR    = "./static"                         # Directory to include as data
 $DATA_DEST   = "static"                           # Destination folder name inside the executable
 $OUTPUT_NAME = "x-up.exe"                         # Desired output executable name
