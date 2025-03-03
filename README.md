@@ -7,11 +7,11 @@ X-UP is a lightweight tool for [EVE Online](https://www.eveonline.com/) that hel
 ## Features
 
 - **Real-Time Monitoring:** Watches fleet chat log files for (e.g., "x" patterns) and updates the counter accordingly.
+- **Quantity Recognition:** Understands and processes multipliers (e.g., "x25 conduit") to increment the counter accordingly.
 - **In-Game Reset:** Resets the counter when dashes (`---`) are detected.
-- **Dynamic Client Detection:** Uses Windows API (via ctypes) to list active EVE client windows.
+- **Dynamic Client Detection:** Uses Windows API (via ctypes) to detect active EVE client windows.
 - **GUI:** Built with Tkinter, the GUI automatically refreshes the available EVE clients and displays the current log file and count.
 - **Standalone Executable:** Compiled with [Nuitka](https://nuitka.net/) to produce a single EXE with no external dependencies.
-
 
 ## Compiling with Nuitka
 
